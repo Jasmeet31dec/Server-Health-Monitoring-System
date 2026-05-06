@@ -1,35 +1,21 @@
-# IntelliJ IDEA
+# Common rules for both frontend and backend
+
+# Node.js (frontend)
+node_modules/
+dist/
+*.log
+
+# Java (backend)
 .idea/
 *.iml
-*.ipr
-*.iws
-
-# Eclipse
-.classpath
-.project
-.settings/
-
-# Compiled class files
 *.class
-
-# Build directories
-out/
 target/
 build/
-
-# Logs
-*.log
+out/
 
 # OS files
 .DS_Store
 Thumbs.db
-
-# Maven
-.mvn/wrapper/maven-wrapper.jar
-
-# Gradle
-.gradle/
-!gradle-wrapper.jar
 
 # Environment files
 .env
