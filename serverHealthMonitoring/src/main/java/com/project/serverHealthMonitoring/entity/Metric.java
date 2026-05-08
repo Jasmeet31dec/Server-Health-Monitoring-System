@@ -35,4 +35,48 @@ public class Metric {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Server getServer() {
+        return server;
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
+    }
+
+    public Double getCpuUsage() {
+        return cpuUsage;
+    }
+
+    public void setCpuUsage(Double cpuUsage) {
+        this.cpuUsage = cpuUsage;
+    }
+
+    public Double getRamUsage() {
+        return ramUsage;
+    }
+
+    public void setRamUsage(Double ramUsage) {
+        this.ramUsage = ramUsage;
+    }
+
+    public Double getDiskUsage() {
+        return diskUsage;
+    }
+
+    public void setDiskUsage(Double diskUsage) {
+        this.diskUsage = diskUsage;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 }

@@ -21,6 +21,7 @@ def collect_and_send_metrics():
         try:
             # 1. Collect System Metrics
             cpu = psutil.cpu_percent(interval=1)
+            #cpu = 95.5
             ram = psutil.virtual_memory().percent
             disk = psutil.disk_usage('/').percent
 

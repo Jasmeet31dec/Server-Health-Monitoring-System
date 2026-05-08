@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchServers } from '../api/client';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { StatusBadge } from '../components/ui/StatusBadge';
 import { Server, ArrowRight, RefreshCw, Cpu, HardDrive } from 'lucide-react';
 
 export const DashboardPage = () => {
@@ -54,9 +54,7 @@ export const DashboardPage = () => {
                                     <div className="bg-blue-50 dark:bg-blue-500/10 p-3 rounded-xl">
                                         <Server className="text-blue-600 w-6 h-6" />
                                     </div>
-                                    <Badge variant={server.status === 'ONLINE' ? 'success' : 'danger'}>
-                                        {server.status}
-                                    </Badge>
+                                    <StatusBadge status={server.status} />
                                 </div>
                                 
                                 <h3 className="text-xl font-bold mb-1">{server.name}</h3>

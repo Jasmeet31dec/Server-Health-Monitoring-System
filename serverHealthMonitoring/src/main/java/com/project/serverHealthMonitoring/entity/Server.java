@@ -35,4 +35,73 @@ public class Server {
 
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Metric> metrics;
+
+    @Column(columnDefinition = "varchar(25) default 'OK'")
+    private String status;   // Default value
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = "OK";
+    }
+
+    public Server(String name, String ipAddress, String description, LocalDateTime createdAt, List<Metric> metrics, String status) {
+        this.name = name;
+        this.ipAddress = ipAddress;
+        this.description = description;
+        this.createdAt = createdAt;
+        this.metrics = metrics;
+        this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public List<Metric> getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(List<Metric> metrics) {
+        this.metrics = metrics;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

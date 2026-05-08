@@ -42,4 +42,11 @@ public class ServerController {
         List<Server> servers = serverRepository.findAll();
         return ResponseEntity.ok(servers);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Server> getServerById(@PathVariable Long id) {
+        return serverRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

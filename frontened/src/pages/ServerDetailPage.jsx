@@ -1,23 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMetrics, fetchServers } from '../api/client';
+import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById } from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
 import { ChevronLeft, Clock, LayoutDashboard } from 'lucide-react';
-import { Badge } from '../components/ui/Badge';
+import { StatusBadge } from '../components/ui/StatusBadge';
 
 export const ServerDetailPage = () => {
     const { id } = useParams();
     const [metrics, setMetrics] = useState([]);
     const [server, setServer] = useState(null);
+    const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const loadMetrics = useCallback(async () => {
-        const to = new Date().toISOString();
-        const from = new Date(Date.now() - 15 * 60000).toISOString(); // Last 15 mins for cleaner chart
-        
-        const data = await fetchMetrics(id, from, to);
-        setMetrics(data);
+    /*const loadMetrics = useCallback(async () => {
+        // Just pass the raw Date objects or timestamps
+        const now = new Date();
+        const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
+
+        try {
+            // Pass the actual Date objects, the client will format them
+            const data = await fetchMetrics(id, thirtyMinsAgo, now);
+            setMetrics(data);
+        } catch (err) {
+            console.error("Error:", err);
+        }
     }, [id]);
+
 
     const loadServerInfo = useCallback(async () => {
         try {
@@ -31,12 +39,55 @@ export const ServerDetailPage = () => {
         }
     }, [id]);
 
+    const loadData = useCallback(async () => {
+        const now = new Date();
+        const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
+        try {
+            // Fetch both metrics and alerts in parallel
+            const [metricData, alertData] = await Promise.all([
+                fetchMetrics(id, thirtyMinsAgo, now),
+                fetchAlerts(id)
+            ]);
+
+            setMetrics(metricData);
+            setAlerts(alertData);
+        } catch (err) {
+            console.error("Failed to load dashboard data", err);
+        }
+    }, [id]);*/
+
+
+    const loadAllData = useCallback(async () => {
+        const now = new Date();
+        const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
+        try {
+            // Fetch everything in one go every 5-10 seconds
+            const [serverData, metricData, alertData] = await Promise.all([
+                fetchServerById(id), // You need an API call for /api/servers/{id}
+                fetchMetrics(id, thirtyMinsAgo, now),
+                fetchAlerts(id)
+            ]);
+
+            setServer(serverData);   // This updates the Status Badge
+            setMetrics(metricData);  // This updates the Graphs
+            setAlerts(alertData);    // This updates the Table
+        } catch (err) {
+            console.error("Polling error:", err);
+        } finally {
+            // 3. THIS IS CRITICAL: Hide loading spinner even if there's an error
+            setLoading(false);
+        }
+    }, [id]);
+
     useEffect(() => {
-        loadServerInfo();
-        loadMetrics();
-        const interval = setInterval(loadMetrics, 5000); // Poll every 5s for real-time effect
-        return () => clearInterval(interval);
-    }, [loadMetrics, loadServerInfo]);
+        loadAllData(); // Initial load
+
+        const interval = setInterval(() => {
+            loadAllData();
+        }, 5000); // Poll every 5 seconds
+
+        return () => clearInterval(interval); // Cleanup on unmount
+    }, [loadAllData]);
 
     if (loading) return <div className="p-10 text-center">Loading server data...</div>;
     if (!server) return <div className="p-10 text-center text-rose-500">Server not found</div>;
@@ -52,9 +103,8 @@ export const ServerDetailPage = () => {
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold">{server.name}</h1>
-                            <Badge variant={server.status === 'ONLINE' ? 'success' : 'danger'}>
-                                {server.status}
-                            </Badge>
+
+                            <StatusBadge status={server.status} />
                         </div>
                         <p className="text-slate-500 font-mono text-sm">{server.ipAddress} • {server.os}</p>
                     </div>
@@ -67,23 +117,23 @@ export const ServerDetailPage = () => {
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <MetricChart 
-                    data={metrics} 
-                    dataKey="cpu" 
-                    color="#3b82f6" 
-                    title="CPU Load" 
+                <MetricChart
+                    data={metrics}
+                    dataKey="cpu"
+                    color="#3b82f6"
+                    title="CPU Load"
                 />
-                <MetricChart 
-                    data={metrics} 
-                    dataKey="ram" 
-                    color="#10b981" 
-                    title="Memory Usage" 
+                <MetricChart
+                    data={metrics}
+                    dataKey="ram"
+                    color="#10b981"
+                    title="Memory Usage"
                 />
-                <MetricChart 
-                    data={metrics} 
-                    dataKey="disk" 
-                    color="#f59e0b" 
-                    title="Disk Capacity" 
+                <MetricChart
+                    data={metrics}
+                    dataKey="disk"
+                    color="#f59e0b"
+                    title="Disk Capacity"
                 />
             </div>
 
@@ -110,6 +160,34 @@ export const ServerDetailPage = () => {
                         <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Agent Version</div>
                         <div className="font-semibold">v1.0.4-stable</div>
                     </div>
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                    <h2 className="font-bold dark:text-white">Alert History</h2>
+                </div>
+                <div className="max-h-[600px] overflow-y-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 uppercase text-[10px] font-bold">
+                            <tr>
+                                <th className="px-4 py-3">Time</th>
+                                <th className="px-4 py-3">Issue</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {alerts.map(alert => (
+                                <tr key={alert.id}>
+                                    <td className="px-4 py-3 text-slate-400 font-mono">
+                                        {new Date(alert.timestamp).toLocaleTimeString()}
+                                    </td>
+                                    <td className="px-4 py-3 dark:text-slate-200 font-medium">
+                                        {alert.message}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
