@@ -7,11 +7,17 @@
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-content: center;
-  min-width: 320px;
-  min-height: 100vh;
+  @apply transition-colors duration-300;
+  @apply bg-white text-slate-900;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* Custom scrollbar for the terminal */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 
 #root {

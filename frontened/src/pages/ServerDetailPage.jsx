@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById } from '../api/client';
+import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById, fetchLogs } from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
 import { ChevronLeft, Clock, LayoutDashboard } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { LogViewer } from '../components/tables/LogViewer';
 
 export const ServerDetailPage = () => {
     const { id } = useParams();
     const [metrics, setMetrics] = useState([]);
     const [server, setServer] = useState(null);
     const [alerts, setAlerts] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
     /*const loadMetrics = useCallback(async () => {
@@ -62,15 +64,17 @@ export const ServerDetailPage = () => {
         const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
         try {
             // Fetch everything in one go every 5-10 seconds
-            const [serverData, metricData, alertData] = await Promise.all([
-                fetchServerById(id), // You need an API call for /api/servers/{id}
+            const [serverData, metricData, alertData, logData] = await Promise.all([
+                fetchServerById(id),  // You need an API call for /api/servers/{id}
                 fetchMetrics(id, thirtyMinsAgo, now),
-                fetchAlerts(id)
+                fetchAlerts(id),    // fetch alerts of server
+                fetchLogs(id)      // fetch server logs
             ]);
 
             setServer(serverData);   // This updates the Status Badge
             setMetrics(metricData);  // This updates the Graphs
-            setAlerts(alertData);    // This updates the Table
+            setAlerts(alertData);    // This updates the Alert Table
+            setLogs(logData);    // This updates the Log Table
         } catch (err) {
             console.error("Polling error:", err);
         } finally {
@@ -163,6 +167,7 @@ export const ServerDetailPage = () => {
                 </div>
             </div>
 
+            {/* Alert Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800">
                     <h2 className="font-bold dark:text-white">Alert History</h2>
@@ -190,6 +195,9 @@ export const ServerDetailPage = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Logs Table */}
+            <LogViewer logs={logs}/>
         </div>
     );
 };

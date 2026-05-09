@@ -68,3 +68,8 @@ export const fetchServerById = async (id) => {
     const { data } = await API.get(`/servers/${id}`);
     return data;
 };
+
+export const fetchLogs = async (serverId) => {
+    const { data } = await API.get(`/logs/${serverId}`);
+    return data;
+};
