@@ -4,10 +4,14 @@ import { fetchServers } from '../api/client';
 import { Card } from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { Server, ArrowRight, RefreshCw, Cpu, HardDrive } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
+
+    
 export const DashboardPage = () => {
     const [servers, setServers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const loadData = async () => {
         setLoading(true);
@@ -32,7 +36,17 @@ export const DashboardPage = () => {
                     <h1 className="text-3xl font-bold">Infrastructure Overview</h1>
                     <p className="text-slate-500 mt-1">Manage and monitor your fleet of active servers.</p>
                 </div>
-                <button 
+
+                {/* Register new Server button */}
+                <button
+                    onClick={() => navigate('/register-server')}
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all shadow-md active:scale-95"
+                >
+                    <span className="text-xl font-bold">+</span>
+                    Register Server
+                </button>
+
+                <button
                     onClick={loadData}
                     className="flex items-center gap-2 text-sm font-medium bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors"
                 >
@@ -56,10 +70,10 @@ export const DashboardPage = () => {
                                     </div>
                                     <StatusBadge status={server.status} />
                                 </div>
-                                
+
                                 <h3 className="text-xl font-bold mb-1">{server.name}</h3>
                                 <p className="text-sm text-slate-500 font-mono mb-6">{server.ipAddress}</p>
-                                
+
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
                                         <Cpu size={14} /> {server.os}
@@ -69,7 +83,7 @@ export const DashboardPage = () => {
                                     </div>
                                 </div>
 
-                                <Link 
+                                <Link
                                     to={`/server/${server.id}`}
                                     className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg font-semibold hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white transition-colors"
                                 >
