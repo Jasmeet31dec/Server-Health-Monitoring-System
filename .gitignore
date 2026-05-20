@@ -12,7 +12,7 @@ dist/
 target/
 build/
 out/
-src/main/resources/application.properties
+application.properties
 
 
 # OS files
