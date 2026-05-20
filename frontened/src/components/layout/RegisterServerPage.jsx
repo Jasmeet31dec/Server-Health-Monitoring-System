@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const RegisterServerPage = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({ name: '', description: '', tags: '' });
     const [apiKey, setApiKey] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -12,7 +14,8 @@ export const RegisterServerPage = () => {
         try {
             // Change URL to your Spring Boot Backend address
             const response = await axios.post('http://localhost:8081/api/servers', formData);
-            setApiKey(response.data.apiKey);
+            //setApiKey(response.data.apiKey);
+            navigate('/')
         } catch (err) {
             alert("Registration failed. Is the backend running?");
         } finally {
@@ -26,6 +29,12 @@ export const RegisterServerPage = () => {
             
             {!apiKey ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <button 
+                        onClick={() => window.location.href = '/'}
+                        className="w-full bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white py-2 rounded-lg"
+                    >
+                        Return to Dashboard
+                    </button>
                     <div>
                         <label className="block text-sm font-medium mb-1">Server Name</label>
                         <input 
@@ -43,11 +52,20 @@ export const RegisterServerPage = () => {
                             onChange={e => setFormData({...formData, description: e.target.value})}
                         />
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Email</label>
+                        <input 
+                            required
+                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                            placeholder="e.g. devteam@gmail.com"
+                            onChange={e => setFormData({...formData, alertEmail: e.target.value})}
+                        />
+                    </div>
                     <button 
                         disabled={loading}
                         className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
                     >
-                        {loading ? 'Generating...' : 'Generate API Key'}
+                        {loading ? 'Registering...' : 'Register Server'}
                     </button>
                 </form>
             ) : (

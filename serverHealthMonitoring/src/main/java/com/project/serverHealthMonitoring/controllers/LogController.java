@@ -10,12 +10,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/logs")
 @CrossOrigin(origins = "*")
 public class LogController {
     private final LogRepository logRepository;
     private final ServerRepository serverRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(LogController.class);
 
     public LogController(LogRepository logRepository, ServerRepository serverRepository) {
         this.logRepository = logRepository;
@@ -32,6 +37,7 @@ public class LogController {
             entry.setTimestamp(LocalDateTime.now());
             entry.setServer(server);
             logRepository.save(entry);
+            log.info("[LOGS] Received {} new log entries from Server ID: {}", logLines.size(), serverId);
         }
     }
 

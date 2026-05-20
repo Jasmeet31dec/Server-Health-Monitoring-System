@@ -36,6 +36,12 @@ public class Server {
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Metric> metrics;
 
+    @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Alert> alerts;
+
+    @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<LogEntry> logs;
+
     @Column(columnDefinition = "varchar(25) default 'OK'")
     private String status;   // Default value
 
@@ -105,5 +111,30 @@ public class Server {
         this.status = status;
     }
 
+    private String alertEmail;
 
+    // 2. ADD THESE GETTERS AND SETTERS
+    public String getAlertEmail() {
+        return alertEmail;
+    }
+
+    public void setAlertEmail(String alertEmail) {
+        this.alertEmail = alertEmail;
+    }
+
+    public List<Alert> getAlerts() {
+        return alerts;
+    }
+
+    public void setAlerts(List<Alert> alerts) {
+        this.alerts = alerts;
+    }
+
+    public List<LogEntry> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<LogEntry> logs) {
+        this.logs = logs;
+    }
 }

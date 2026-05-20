@@ -11,12 +11,17 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/metrics")
 public class MetricController {
 
     private final MetricRepository metricRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(MetricController.class);
 
     public MetricController(MetricRepository metricRepository) {
         this.metricRepository = metricRepository;
@@ -26,6 +31,8 @@ public class MetricController {
     @PostMapping
     public ResponseEntity<Metric> pushMetrics(@RequestBody Metric metric) {
         Metric savedMetric = metricRepository.save(metric);
+        log.info("[METRIC] Data received from Server ID: {} | CPU: {}% | RAM: {}%",
+                metric.getServer().getId(), metric.getCpuUsage(), metric.getRamUsage());
         return new ResponseEntity<>(savedMetric, HttpStatus.CREATED);
     }
 

@@ -13,6 +13,7 @@ target/
 build/
 out/
 application.properties
+serverHealthMonitoring/src/main/resources/application.properties
 
 
 # OS files

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export const LogViewer = ({ logs }) => {
+export const LogViewer = ({ logs , onClear}) => {
     const scrollRef = useRef(null);
 
     // Auto-scroll to bottom when new logs arrive
@@ -20,10 +20,16 @@ export const LogViewer = ({ logs }) => {
                     <div className="h-3 w-3 rounded-full bg-green-500/80" />
                 </div>
                 <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">bash — 80x24</span>
+                <button
+                    onClick={onClear}
+                    className="text-[10px] text-zinc-500 hover:text-white border border-zinc-700 px-2 py-0.5 rounded transition-colors"
+                >
+                    CLEAR CONSOLE
+                </button>
             </div>
 
             {/* Terminal Body */}
-            <div 
+            <div
                 ref={scrollRef}
                 className="relative h-[400px] overflow-y-auto bg-[#0a0a0a] p-4 font-mono text-sm leading-relaxed scrollbar-thin scrollbar-thumb-zinc-800"
             >
@@ -33,10 +39,9 @@ export const LogViewer = ({ logs }) => {
                 {logs.map((log, i) => (
                     <div key={i} className="flex gap-3 hover:bg-white/5 transition-colors">
                         <span className="text-zinc-600 shrink-0">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                        <span className={`font-bold ${
-                            log.level === 'ERROR' ? 'text-red-500' : 
-                            log.level === 'WARN' ? 'text-yellow-500' : 'text-emerald-500'
-                        }`}>
+                        <span className={`font-bold ${log.level === 'ERROR' ? 'text-red-500' :
+                                log.level === 'WARN' ? 'text-yellow-500' : 'text-emerald-500'
+                            }`}>
                             {log.level}:
                         </span>
                         <span className="text-zinc-300">
@@ -44,7 +49,7 @@ export const LogViewer = ({ logs }) => {
                         </span>
                     </div>
                 ))}
-                
+
                 {/* Pulsing Cursor */}
                 <div className="flex gap-2 items-center mt-1">
                     <span className="text-emerald-500 font-bold">root@monitor:~#</span>

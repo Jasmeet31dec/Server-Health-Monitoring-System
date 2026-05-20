@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -18,6 +21,8 @@ import java.util.List;
 public class ServerController {
 
     private final ServerRepository serverRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(ServerController.class);
 
     public ServerController(ServerRepository serverRepository) {
         this.serverRepository = serverRepository;
@@ -30,6 +35,8 @@ public class ServerController {
     @PostMapping
     public ResponseEntity<Server> registerServer(@Valid @RequestBody Server server) {
         Server savedServer = serverRepository.save(server);
+        log.info("[SERVER] Registered new server: {} | ID: {} | Email: {}",
+                savedServer.getName(), savedServer.getId(), savedServer.getAlertEmail());
         return new ResponseEntity<>(savedServer, HttpStatus.CREATED);
     }
 
@@ -48,5 +55,10 @@ public class ServerController {
         return serverRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteServerById(@PathVariable Long id) {
+        serverRepository.deleteById(id);
     }
 }
