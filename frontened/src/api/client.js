@@ -60,11 +60,28 @@ export const fetchMetrics = async (serverId, fromDate, toDate) => {
 };
 
 export const fetchAlerts = async (serverId) => {
-    const { data } = await API.get(`/alerts/server/${serverId}`);
+    const { data } = await API.get(`/alerts/servers/${serverId}`);
     return data;
 };
 
 export const fetchServerById = async (id) => {
     const { data } = await API.get(`/servers/${id}`);
     return data;
+};
+
+export const fetchLogs = async (serverId) => {
+    const { data } = await API.get(`/logs/${serverId}`);
+    return data;
+};
+
+export const registerServer = async (serverData) => {
+    // Additional Frontend Trim for better UX
+    const cleanedData = {
+        ...serverData,
+        name: serverData.name.trim(),
+        description: serverData.description?.trim() || "" 
+    };
+
+    const response = await API.post(`/servers`, cleanedData);
+    return response.data;
 };

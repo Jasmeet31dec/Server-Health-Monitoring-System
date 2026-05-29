@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById } from '../api/client';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById, fetchLogs } from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
-import { ChevronLeft, Clock, LayoutDashboard } from 'lucide-react';
+import { ChevronLeft, Clock, LayoutDashboard, Trash2 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { LogViewer } from '../components/tables/LogViewer';
+import axios from 'axios';
 
 export const ServerDetailPage = () => {
+    const navigate = useNavigate();
     const { id } = useParams();
     const [metrics, setMetrics] = useState([]);
     const [server, setServer] = useState(null);
     const [alerts, setAlerts] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
     /*const loadMetrics = useCallback(async () => {
@@ -56,21 +60,41 @@ export const ServerDetailPage = () => {
         }
     }, [id]);*/
 
+    // 2. Define the clear function
+    const clearLogs = () => {
+        setLogs([]); // This empties the local state, clearing the UI terminal
+    };
 
     const loadAllData = useCallback(async () => {
         const now = new Date();
         const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
         try {
             // Fetch everything in one go every 5-10 seconds
-            const [serverData, metricData, alertData] = await Promise.all([
-                fetchServerById(id), // You need an API call for /api/servers/{id}
+            const [serverData, metricData, alertData, logData] = await Promise.all([
+                fetchServerById(id),  // You need an API call for /api/servers/{id}
                 fetchMetrics(id, thirtyMinsAgo, now),
-                fetchAlerts(id)
+                fetchAlerts(id),    // fetch alerts of server
+                fetchLogs(id)      // fetch server logs
             ]);
 
             setServer(serverData);   // This updates the Status Badge
             setMetrics(metricData);  // This updates the Graphs
-            setAlerts(alertData);    // This updates the Table
+            setAlerts(alertData);    // This updates the Alert Table
+            setLogs(prevLogs => {
+                // 1. Create a Set of IDs already in our terminal for fast lookup
+                const existingIds = new Set(prevLogs.map(log => log.id));
+
+                // 2. Only take logs from the fetched data that we haven't seen before
+                const newUniqueLogs = logData.filter(log => !existingIds.has(log.id));
+
+                // 3. If there's nothing new, don't change state (prevents unnecessary re-renders)
+                if (newUniqueLogs.length === 0) return prevLogs;
+
+                // 4. Combine existing logs with the truly new ones and keep only the last 100
+                const combined = [...prevLogs, ...newUniqueLogs];
+                return combined.slice(-100);
+            });
+
         } catch (err) {
             console.error("Polling error:", err);
         } finally {
@@ -88,6 +112,17 @@ export const ServerDetailPage = () => {
 
         return () => clearInterval(interval); // Cleanup on unmount
     }, [loadAllData]);
+
+    const handleDelete = async () => {
+        if (window.confirm("Permanently delete this server and all its history?")) {
+            try {
+                await axios.delete(`http://localhost:8081/api/servers/${id}`);
+                navigate('/'); // Redirect to dashboard after deletion
+            } catch (err) {
+                console.error("Delete failed", err);
+            }
+        }
+    };
 
     if (loading) return <div className="p-10 text-center">Loading server data...</div>;
     if (!server) return <div className="p-10 text-center text-rose-500">Server not found</div>;
@@ -108,6 +143,13 @@ export const ServerDetailPage = () => {
                         </div>
                         <p className="text-slate-500 font-mono text-sm">{server.ipAddress} • {server.os}</p>
                     </div>
+                    <button
+                        onClick={handleDelete}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Delete Server"
+                    >
+                        <Trash2 size={20} />
+                    </button>
                 </div>
                 <div className="flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-500/10 text-blue-600 px-4 py-2 rounded-full font-medium">
                     <Clock size={16} className="animate-pulse" />
@@ -163,6 +205,7 @@ export const ServerDetailPage = () => {
                 </div>
             </div>
 
+            {/* Alert Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800">
                     <h2 className="font-bold dark:text-white">Alert History</h2>
@@ -190,6 +233,9 @@ export const ServerDetailPage = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Logs Table */}
+            <LogViewer logs={logs} onClear={clearLogs}/>
         </div>
     );
 };

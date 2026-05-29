@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { DashboardPage } from './pages/DashboardPage';
 import { ServerDetailPage } from './pages/ServerDetailPage';
+import { RegisterServerPage } from './components/layout/RegisterServerPage'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/server/:id" element={<ServerDetailPage />} />
+            <Route path="/register-server" element={<RegisterServerPage />} />
           </Routes>
         </main>
       </div>

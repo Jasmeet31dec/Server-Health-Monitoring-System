@@ -1,0 +1,2 @@
+[18:32:07] WARN: Memory threshold reached
+[18:32:37] INFO: User logged in

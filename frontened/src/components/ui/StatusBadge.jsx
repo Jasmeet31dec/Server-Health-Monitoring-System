@@ -1,6 +1,6 @@
 export const StatusBadge = ({ status }) => {
   const config = {
-    OK: { color: 'bg-green-500', text: 'Healthy', icon: '●' },
+    HEALTHY: { color: 'bg-green-500', text: 'Healthy', icon: '●' },
     HIGH_LOAD: { color: 'bg-red-500', text: 'High Load', icon: '▲' },
     OFFLINE: { color: 'bg-slate-500', text: 'Offline', icon: '○' }
   };
