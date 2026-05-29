@@ -13,8 +13,8 @@ target/
 build/
 out/
 application.properties
-serverHealthMonitoring/src/main/resources/application.properties
-
+application-dev.properties
+application-prod.properties
 
 # OS files
 .DS_Store
