@@ -46,7 +46,7 @@ public class ServerController {
      */
     @GetMapping
     public ResponseEntity<List<Server>> getAllServers() {
-        List<Server> servers = serverRepository.findAll();
+        List<Server> servers = serverRepository.findAllByOrderByIdDesc();
         return ResponseEntity.ok(servers);
     }
 
@@ -60,5 +60,20 @@ public class ServerController {
     @DeleteMapping("/{id}")
     public void deleteServerById(@PathVariable Long id) {
         serverRepository.deleteById(id);
+    }
+
+    @GetMapping("/search")
+    public List<Server> searchServers(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String status) {
+
+        if (name != null && status != null) {
+            return serverRepository.findByNameContainingIgnoreCaseAndStatus(name, status);
+        } else if (name != null) {
+            return serverRepository.findByNameContainingIgnoreCase(name);
+        } else if (status != null) {
+            return serverRepository.findByStatus(status);
+        }
+        return serverRepository.findAll();
     }
 }

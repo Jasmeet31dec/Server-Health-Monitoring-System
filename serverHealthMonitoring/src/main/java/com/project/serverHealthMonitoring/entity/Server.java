@@ -1,8 +1,10 @@
 package com.project.serverHealthMonitoring.entity;
 
 import jakarta.persistence.*;   // For @Entity, @Id, @GeneratedValue, @Column, @OneToMany
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;    // Validation
 import jakarta.validation.constraints.Pattern;    // Validation
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;    // For @Data, @NoArgsConstructor, @AllArgsConstructor
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,7 @@ public class Server {
     private Long id;
 
     @NotBlank(message = "Server name is required")
+    @Size(min = 2, max = 30, message = "Name must be between 2 and 30 characters")
     private String name;
 
     @Pattern(regexp = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
@@ -45,9 +48,41 @@ public class Server {
     @Column(columnDefinition = "varchar(25) default 'OK'")
     private String status;   // Default value
 
+    @NotBlank(message = "Alert email is required")
+    @Email(message = "Please enter a valid email format")
+    private String alertEmail;
+
     @PrePersist
     public void prePersist() {
-        if (status == null) status = "OK";
+
+        // Default status if null
+        if (status == null) {
+            status = "OFFLINE";
+        }
+
+        // Trim name
+        if (this.name != null) {
+            this.name = this.name.trim();
+        }
+
+        // Default description if empty
+        if (this.description == null || this.description.isBlank()) {
+            this.description = "No description provided";
+        }
+    }
+
+    // LOGIC: Automatically trim spaces before saving to DB
+    @PreUpdate
+    public void validateAndTrim() {
+        // Trim name
+        if (this.name != null) {
+            this.name = this.name.trim();
+        }
+
+        // Default description if empty
+        if (this.description == null || this.description.isBlank()) {
+            this.description = "No description provided";
+        }
     }
 
     public Server(String name, String ipAddress, String description, LocalDateTime createdAt, List<Metric> metrics, String status) {
@@ -110,8 +145,6 @@ public class Server {
     public void setStatus(String status) {
         this.status = status;
     }
-
-    private String alertEmail;
 
     // 2. ADD THESE GETTERS AND SETTERS
     public String getAlertEmail() {

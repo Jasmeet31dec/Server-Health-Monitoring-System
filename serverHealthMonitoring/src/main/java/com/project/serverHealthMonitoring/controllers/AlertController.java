@@ -17,7 +17,7 @@ public class AlertController {
         this.alertRepository = alertRepository;
     }
 
-    @GetMapping("/server/{serverId}")
+    @GetMapping("/servers/{serverId}")
     public List<Alert> getServerAlerts(@PathVariable Long serverId) {
         return alertRepository.findByServerIdOrderByTimestampDesc(serverId);
     }
