@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fetchMetrics, fetchServers, fetchAlerts, fetchServerById, fetchLogs } from '../api/client';
+import { fetchMetrics, fetchAlerts, fetchServerById, fetchLogs } from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
-import { ChevronLeft, Clock, LayoutDashboard, Trash2 } from 'lucide-react';
+import { ChevronLeft, Clock, LayoutDashboard, Trash2, Activity, TrendingUp } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { LogViewer } from '../components/tables/LogViewer';
 import axios from 'axios';
@@ -10,232 +10,194 @@ import axios from 'axios';
 export const ServerDetailPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [metrics, setMetrics] = useState([]);
+
+    // --- State Management ---
     const [server, setServer] = useState(null);
+    const [metrics, setMetrics] = useState([]);  // Live Data (Last 30m)
+    const [history, setHistory] = useState([]);  // Trend Data (Last 24h)
     const [alerts, setAlerts] = useState([]);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState('live'); // 'live' or 'trends'
 
-    /*const loadMetrics = useCallback(async () => {
-        // Just pass the raw Date objects or timestamps
-        const now = new Date();
-        const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
+    const clearLogs = () => setLogs([]);
 
-        try {
-            // Pass the actual Date objects, the client will format them
-            const data = await fetchMetrics(id, thirtyMinsAgo, now);
-            setMetrics(data);
-        } catch (err) {
-            console.error("Error:", err);
-        }
-    }, [id]);
-
-
-    const loadServerInfo = useCallback(async () => {
-        try {
-            const servers = await fetchServers();
-            const found = servers.find(s => s.id === parseInt(id));
-            setServer(found);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
-
-    const loadData = useCallback(async () => {
-        const now = new Date();
-        const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
-        try {
-            // Fetch both metrics and alerts in parallel
-            const [metricData, alertData] = await Promise.all([
-                fetchMetrics(id, thirtyMinsAgo, now),
-                fetchAlerts(id)
-            ]);
-
-            setMetrics(metricData);
-            setAlerts(alertData);
-        } catch (err) {
-            console.error("Failed to load dashboard data", err);
-        }
-    }, [id]);*/
-
-    // 2. Define the clear function
-    const clearLogs = () => {
-        setLogs([]); // This empties the local state, clearing the UI terminal
-    };
-
+    // --- Data Fetching: Live (Polling) ---
     const loadAllData = useCallback(async () => {
         const now = new Date();
         const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
         try {
-            // Fetch everything in one go every 5-10 seconds
             const [serverData, metricData, alertData, logData] = await Promise.all([
-                fetchServerById(id),  // You need an API call for /api/servers/{id}
+                fetchServerById(id),
                 fetchMetrics(id, thirtyMinsAgo, now),
-                fetchAlerts(id),    // fetch alerts of server
-                fetchLogs(id)      // fetch server logs
+                fetchAlerts(id),
+                fetchLogs(id)
             ]);
 
-            setServer(serverData);   // This updates the Status Badge
-            setMetrics(metricData);  // This updates the Graphs
-            setAlerts(alertData);    // This updates the Alert Table
+            setServer(serverData);
+            setMetrics(metricData);
+            setAlerts(alertData);
             setLogs(prevLogs => {
-                // 1. Create a Set of IDs already in our terminal for fast lookup
                 const existingIds = new Set(prevLogs.map(log => log.id));
-
-                // 2. Only take logs from the fetched data that we haven't seen before
                 const newUniqueLogs = logData.filter(log => !existingIds.has(log.id));
-
-                // 3. If there's nothing new, don't change state (prevents unnecessary re-renders)
                 if (newUniqueLogs.length === 0) return prevLogs;
-
-                // 4. Combine existing logs with the truly new ones and keep only the last 100
-                const combined = [...prevLogs, ...newUniqueLogs];
-                return combined.slice(-100);
+                return [...prevLogs, ...newUniqueLogs].slice(-100);
             });
 
         } catch (err) {
             console.error("Polling error:", err);
         } finally {
-            // 3. THIS IS CRITICAL: Hide loading spinner even if there's an error
             setLoading(false);
         }
     }, [id]);
 
+    // --- Data Fetching: History (On Demand) ---
+    const loadHistoryData = useCallback(async () => {
+        try {
+            const res = await axios.get(`http://localhost:8081/api/metrics/${id}/history`);
+            setHistory(res.data);
+        } catch (err) {
+            console.error("Failed to load history:", err);
+        }
+    }, [id]);
+
+    // --- Lifecycle Effects ---
     useEffect(() => {
-        loadAllData(); // Initial load
-
-        const interval = setInterval(() => {
-            loadAllData();
-        }, 5000); // Poll every 5 seconds
-
-        return () => clearInterval(interval); // Cleanup on unmount
+        loadAllData();
+        const interval = setInterval(loadAllData, 5000);
+        return () => clearInterval(interval);
     }, [loadAllData]);
+
+    // Fetch history only when the user switches to 'trends' mode
+    useEffect(() => {
+        if (viewMode === 'trends') {
+            loadHistoryData();
+        }
+    }, [viewMode, loadHistoryData]);
+
+    const formatTime = (timestamp) => {
+    if (!timestamp) return '---';
+    
+    // If Spring sends an array [2024, 5, 12, 10, 30], convert it to a Date
+    let date;
+    if (Array.isArray(timestamp)) {
+        date = new Date(timestamp[0], timestamp[1] - 1, timestamp[2], timestamp[3], timestamp[4], timestamp[5]);
+    } else {
+        date = new Date(timestamp);
+    }
+
+    return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
+};
 
     const handleDelete = async () => {
         if (window.confirm("Permanently delete this server and all its history?")) {
             try {
                 await axios.delete(`http://localhost:8081/api/servers/${id}`);
-                navigate('/'); // Redirect to dashboard after deletion
-            } catch (err) {
-                console.error("Delete failed", err);
-            }
+                navigate('/');
+            } catch (err) { console.error("Delete failed", err); }
         }
     };
 
-    if (loading) return <div className="p-10 text-center">Loading server data...</div>;
-    if (!server) return <div className="p-10 text-center text-rose-500">Server not found</div>;
+    if (loading) return <div className="p-10 text-center animate-pulse">Synchronizing with node...</div>;
+    if (!server) return <div className="p-10 text-center text-rose-500">Node not found</div>;
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
+            {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Link to="/" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <ChevronLeft />
-                    </Link>
+                    <Link to="/" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"><ChevronLeft /></Link>
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold">{server.name}</h1>
-
                             <StatusBadge status={server.status} />
                         </div>
-                        <p className="text-slate-500 font-mono text-sm">{server.ipAddress} • {server.os}</p>
+                        <p className="text-slate-500 font-mono text-sm uppercase tracking-tighter">API KEY: {server.apiKey?.substring(0, 12)}***</p>
                     </div>
+                    <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
+                </div>
+
+                {/* View Mode Switcher */}
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                     <button
-                        onClick={handleDelete}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Delete Server"
+                        onClick={() => setViewMode('live')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'live' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500'}`}
                     >
-                        <Trash2 size={20} />
+                        <Activity size={16} /> Live View
+                    </button>
+                    <button
+                        onClick={() => setViewMode('trends')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'trends' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-500'}`}
+                    >
+                        <TrendingUp size={16} /> History (24h)
                     </button>
                 </div>
-                <div className="flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-500/10 text-blue-600 px-4 py-2 rounded-full font-medium">
-                    <Clock size={16} className="animate-pulse" />
-                    Live Monitoring Active
+            </div>
+
+            {/* Conditional Charts Section */}
+            {viewMode === 'live' ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+                    <MetricChart data={metrics} dataKey="cpu" color="#6366f1" title="Real-time CPU" />
+                    <MetricChart data={metrics} dataKey="ram" color="#ec4899" title="Real-time RAM" />
+                    <MetricChart data={metrics} dataKey="disk" color="#f59e0b" title="Real-time Disk" />
                 </div>
-            </div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-2 duration-500">
+                    <MetricChart data={history} dataKey="avgCpu" color="#6366f1" title="CPU 24h Trend" />
+                    <MetricChart data={history} dataKey="avgRam" color="#ec4899" title="RAM 24h Trend" />
+                </div>
+            )}
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <MetricChart
-                    data={metrics}
-                    dataKey="cpu"
-                    color="#3b82f6"
-                    title="CPU Load"
-                />
-                <MetricChart
-                    data={metrics}
-                    dataKey="ram"
-                    color="#10b981"
-                    title="Memory Usage"
-                />
-                <MetricChart
-                    data={metrics}
-                    dataKey="disk"
-                    color="#f59e0b"
-                    title="Disk Capacity"
-                />
-            </div>
-
-            {/* Info Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-2 mb-4 font-bold text-lg">
-                    <LayoutDashboard size={20} className="text-blue-600" />
-                    System Specifications
+            {/* System Info Card */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-6 font-bold text-lg">
+                    <LayoutDashboard size={20} className="text-indigo-600" /> System Metrics Summary
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div>
-                        <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Architecture</div>
-                        <div className="font-semibold">x64_64 bit</div>
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Status</div>
+                        <div className="font-semibold">{server.status}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Monitoring Interval</div>
-                        <div className="font-semibold">5 Seconds</div>
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Last Data</div>
+                        <div className="font-semibold text-indigo-600">
+                            {metrics.length > 0 ? formatTime(metrics[metrics.length - 1].timestamp) : '---'}
+                        </div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Last Data Point</div>
-                        <div className="font-semibold">{metrics.length > 0 ? metrics[metrics.length - 1].time : 'Waiting...'}</div>
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Email Alerts</div>
+                        <div className="font-semibold truncate w-32">{server.alertEmail}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Agent Version</div>
-                        <div className="font-semibold">v1.0.4-stable</div>
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Refresh Rate</div>
+                        <div className="font-semibold">5s (Live) / 1h (Hist)</div>
                     </div>
                 </div>
             </div>
 
-            {/* Alert Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                    <h2 className="font-bold dark:text-white">Alert History</h2>
+            {/* Bottom Section: Alerts & Logs */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <h2 className="font-bold flex items-center gap-2 underline decoration-indigo-500">Critical Incidents</h2>
+                        <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded text-[10px] font-bold">{alerts.length} Total</span>
+                    </div>
+                    <div className="h-[400px] overflow-y-auto">
+                        <table className="w-full text-sm">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {alerts.map(alert => (
+                                    <tr key={alert.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                        <td className="px-4 py-4 text-slate-400 font-mono whitespace-nowrap">{new Date(alert.timestamp).toLocaleTimeString()}</td>
+                                        <td className="px-4 py-4 font-medium text-slate-700 dark:text-slate-300">{alert.message}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div className="max-h-[600px] overflow-y-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 uppercase text-[10px] font-bold">
-                            <tr>
-                                <th className="px-4 py-3">Time</th>
-                                <th className="px-4 py-3">Issue</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {alerts.map(alert => (
-                                <tr key={alert.id}>
-                                    <td className="px-4 py-3 text-slate-400 font-mono">
-                                        {new Date(alert.timestamp).toLocaleTimeString()}
-                                    </td>
-                                    <td className="px-4 py-3 dark:text-slate-200 font-medium">
-                                        {alert.message}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            {/* Logs Table */}
-            <LogViewer logs={logs} onClear={clearLogs}/>
+                <LogViewer logs={logs} onClear={clearLogs} />
+            </div>
         </div>
     );
 };

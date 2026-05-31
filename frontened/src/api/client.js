@@ -36,7 +36,7 @@ export const fetchMetrics = async (serverId, fromDate, toDate) => {
     const from = getLocalISOString(new Date(fromDate));
     const to = getLocalISOString(new Date(toDate));
 
-    console.log("Fetching metrics for range:", { from, to });
+    
     try {
         const { data } = await API.get(`/metrics`, {
             params: { serverId, from, to }

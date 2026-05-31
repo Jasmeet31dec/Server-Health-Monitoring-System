@@ -31,4 +31,7 @@ public interface MetricRepository extends JpaRepository<Metric, Long> {
     void deleteOldMetrics(LocalDateTime expiryDate);
 
     Optional<Metric> findFirstByServerOrderByTimestampDesc(Server server);
+
+    List<Metric> findByServerIdAndTimestampBetween(Long serverId,LocalDateTime from,
+                                                   LocalDateTime to);
 }
