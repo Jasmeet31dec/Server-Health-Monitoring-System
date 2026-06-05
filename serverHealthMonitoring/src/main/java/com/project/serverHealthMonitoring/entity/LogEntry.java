@@ -1,5 +1,6 @@
 package com.project.serverHealthMonitoring.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -12,6 +13,8 @@ public class LogEntry {
     private Long id;
     private String level; // INFO, ERROR, WARN
     private String message;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 
     @ManyToOne

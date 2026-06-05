@@ -1,5 +1,6 @@
 package com.project.serverHealthMonitoring.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -12,6 +13,8 @@ public class Alert {
     private Long id;
     private String message;
     private String severity; // "CRITICAL" or "WARNING"
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 
     @ManyToOne

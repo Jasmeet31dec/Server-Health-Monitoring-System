@@ -74,7 +74,7 @@ public class AlertService {
         }
     }
 
-    private void sendEmail(String to, String subject, String body) {
+    public void sendEmail(String to, String subject, String body) {
         // 1. Check if the email address actually exists
         if (to == null || to.isEmpty()) {
             System.err.println("Skipping email: No alert email defined for this server.");
@@ -100,5 +100,38 @@ public class AlertService {
             log.error("[EMAIL] Failed to send email to: {} | Error: {}", to, e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    //count and alert if too many errors in last 5 min
+    public void checkLogHealth(Server server, long errorCount) {
+        int ERROR_THRESHOLD = 5;
+
+        if (errorCount >= ERROR_THRESHOLD && !"UNSTABLE".equals(server.getStatus())) {
+            server.setStatus("UNSTABLE");
+
+            // Create UI Alert
+            Alert alert = new Alert();
+            alert.setServer(server);
+            alert.setMessage("Server marked as UNSTABLE: " + errorCount + " errors detected in last 5 mins.");
+            alert.setTimestamp(LocalDateTime.now());
+            alertRepository.save(alert);
+
+            // Send Email
+            sendEmail(server.getAlertEmail(),
+                    "🔴 CRITICAL: Server " + server.getName() + " is UNSTABLE",
+                    "Your server has reported " + errorCount + " errors in the last 5 minutes. Please check logs immediately.");
+
+            log.warn("[SMART-ALERT] Server {} marked as UNSTABLE due to high error count", server.getName());
+        }
+    }
+
+    // trigger alert if any danger buzzword in log
+    public void triggerInstantKeywordAlert(Server server, String logMessage) {
+        // Only send email, don't necessarily change status unless you want to
+        log.error("[CRITICAL-LOG] Keyword match on {}: {}", server.getName(), logMessage);
+
+        sendEmail(server.getAlertEmail(),
+                "🔥 URGENT: Critical Error on " + server.getName(),
+                "A critical log pattern was detected:\n\n" + logMessage);
     }
 }

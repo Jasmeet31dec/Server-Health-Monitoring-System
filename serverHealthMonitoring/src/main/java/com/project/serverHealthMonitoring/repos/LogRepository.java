@@ -16,4 +16,7 @@ public interface LogRepository extends JpaRepository<LogEntry, Long> {
     @Transactional
     @Modifying
     void deleteByTimestampBefore(LocalDateTime expiryDate);
+
+    // Count how many ERROR logs a server has in a specific time window
+    long countByServerIdAndLevelAndTimestampAfter(Long serverId, String level, LocalDateTime time);
 }

@@ -1,2 +1,10 @@
 [18:32:07] WARN: Memory threshold reached
 [18:32:37] INFO: User logged in
+[23:41:42] ERROR: Database timeout
+[17:54:42] ERROR: Database timeout
+[17:55:12] WARN: Memory threshold reached
+[18:18:41] INFO: User logged in
+[18:19:11] ERROR: Database timeout
+[18:19:41] INFO: User logged in
+[18:20:11] WARN: Memory threshold reached
+[18:20:41] INFO: User logged in

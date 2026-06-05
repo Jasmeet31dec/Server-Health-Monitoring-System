@@ -1,5 +1,6 @@
 package com.project.serverHealthMonitoring.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*; // For @Entity, @Id, @GeneratedValue, @ManyToOne, @JoinColumn
 import jakarta.validation.constraints.Min; // Validation
@@ -34,6 +35,7 @@ public class Metric {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 
     public Long getId() {

@@ -1,6 +1,8 @@
 package com.project.serverHealthMonitoring.controllers;
 
+import com.project.serverHealthMonitoring.entity.HistoricalMetric;
 import com.project.serverHealthMonitoring.entity.Metric;
+import com.project.serverHealthMonitoring.repos.HistoricalMetricRepository;
 import com.project.serverHealthMonitoring.repos.MetricRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,11 +22,13 @@ import org.slf4j.LoggerFactory;
 public class MetricController {
 
     private final MetricRepository metricRepository;
+    private final HistoricalMetricRepository historicalRepository;
 
     private static final Logger log = LoggerFactory.getLogger(MetricController.class);
 
-    public MetricController(MetricRepository metricRepository) {
+    public MetricController(MetricRepository metricRepository, HistoricalMetricRepository historicalRepository) {
         this.metricRepository = metricRepository;
+        this.historicalRepository = historicalRepository;
     }
 
     // 1. Push metrics (Called by Python Agent)
@@ -45,6 +49,13 @@ public class MetricController {
 
         return ResponseEntity.ok(
                 metricRepository.findByServerIdAndTimestampBetweenOrderByTimestampAsc(serverId, from, to)
+        );
+    }
+
+    @GetMapping("/{serverId}/history")
+    public List<HistoricalMetric> getHistory(@PathVariable Long serverId) {
+        return historicalRepository.findByServerIdAndTimestampAfterOrderByTimestampAsc(
+                serverId, LocalDateTime.now().minusHours(24)
         );
     }
 }
