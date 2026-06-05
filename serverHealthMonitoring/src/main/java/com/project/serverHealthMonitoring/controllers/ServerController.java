@@ -59,7 +59,9 @@ public class ServerController {
 
     @DeleteMapping("/{id}")
     public void deleteServerById(@PathVariable Long id) {
+
         serverRepository.deleteById(id);
+        log.info("[DELETE] server {} is deleted.",id);
     }
 
     @GetMapping("/search")

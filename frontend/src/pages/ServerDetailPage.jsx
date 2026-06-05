@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fetchMetrics, fetchAlerts, fetchServerById, fetchLogs } from '../api/client';
+import { fetchMetrics, fetchAlerts, fetchServerById, fetchLogs, fetchServerHistory, handleDelete} from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
 import { ChevronLeft, Clock, LayoutDashboard, Trash2, Activity, TrendingUp } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -54,12 +54,23 @@ export const ServerDetailPage = () => {
     // --- Data Fetching: History (On Demand) ---
     const loadHistoryData = useCallback(async () => {
         try {
-            const res = await axios.get(`http://localhost:8081/api/metrics/${id}/history`);
-            setHistory(res.data);
+            const res = await fetchServerHistory(id);
+            setHistory(res);
         } catch (err) {
             console.error("Failed to load history:", err);
         }
     }, [id]);
+
+    const deleteServer = async (serverId) => {
+        if (window.confirm("Are you sure? This will delete all history for this server.")) {
+            try {
+                await handleDelete(serverId);
+                navigate('/');
+            } catch (err) {
+                alert("Error deleting server");
+            }
+        }
+    }
 
     // --- Lifecycle Effects ---
     useEffect(() => {
@@ -76,27 +87,20 @@ export const ServerDetailPage = () => {
     }, [viewMode, loadHistoryData]);
 
     const formatTime = (timestamp) => {
-    if (!timestamp) return '---';
-    
-    // If Spring sends an array [2024, 5, 12, 10, 30], convert it to a Date
-    let date;
-    if (Array.isArray(timestamp)) {
-        date = new Date(timestamp[0], timestamp[1] - 1, timestamp[2], timestamp[3], timestamp[4], timestamp[5]);
-    } else {
-        date = new Date(timestamp);
-    }
+        if (!timestamp) return '---';
 
-    return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
-};
-
-    const handleDelete = async () => {
-        if (window.confirm("Permanently delete this server and all its history?")) {
-            try {
-                await axios.delete(`http://localhost:8081/api/servers/${id}`);
-                navigate('/');
-            } catch (err) { console.error("Delete failed", err); }
+        // If Spring sends an array [2024, 5, 12, 10, 30], convert it to a Date
+        let date;
+        if (Array.isArray(timestamp)) {
+            date = new Date(timestamp[0], timestamp[1] - 1, timestamp[2], timestamp[3], timestamp[4], timestamp[5]);
+        } else {
+            date = new Date(timestamp);
         }
+
+        return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
     };
+
+
 
     if (loading) return <div className="p-10 text-center animate-pulse">Synchronizing with node...</div>;
     if (!server) return <div className="p-10 text-center text-rose-500">Node not found</div>;
@@ -114,7 +118,7 @@ export const ServerDetailPage = () => {
                         </div>
                         <p className="text-slate-500 font-mono text-sm uppercase tracking-tighter">API KEY: {server.apiKey?.substring(0, 12)}***</p>
                     </div>
-                    <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
+                    <button onClick={() => deleteServer(id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
                 </div>
 
                 {/* View Mode Switcher */}
