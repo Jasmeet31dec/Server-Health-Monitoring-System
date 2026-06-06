@@ -12,7 +12,6 @@ dist/
 target/
 build/
 out/
-application.properties
 application-dev.properties
 application-prod.properties
 
