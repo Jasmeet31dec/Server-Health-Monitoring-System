@@ -1,14 +1,18 @@
-# Use JDK 24 base image
-FROM eclipse-temurin:21-jdk
-
-# Set working directory inside container
+# Stage 1: Build the JAR
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn -q -e -DskipTests package
 
-# Copy JAR into container
-COPY target/serverHealthMonitoring-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose Spring Boot default port
+# Stage 2: Run the JAR
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=build /app/target/serverHealthMonitoring-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
-# Run the JAR
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+
+
+
