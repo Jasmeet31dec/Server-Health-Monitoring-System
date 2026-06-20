@@ -33,6 +33,16 @@ const getLocalISOString = (date) => {
  * Backend: cpuUsage, ramUsage, diskUsage
  * Frontend: cpu, ram, disk
  */
+function getLocalISOString(date) {
+  // Get timezone offset in minutes, convert to ms
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  // Shift the date by offset, then format
+  const localISO = new Date(date.getTime() - tzOffset)
+    .toISOString()
+    .slice(0, -1); // remove trailing 'Z'
+  return localISO;
+}
+
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
   const from = getLocalISOString(fromDate);
   const to = getLocalISOString(toDate);
