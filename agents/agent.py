@@ -12,7 +12,7 @@ parser.add_argument("--log-path", type=str, default="app.log", help="Path to the
 args = parser.parse_args()
 
 # Configuration
-BASE_URL = "http://localhost:8081/api"
+BASE_URL = "https://server-health-monitoring-system.onrender.com/api"
 SERVER_ID = args.server_id
 LOG_FILE_PATH = args.log_path
 INTERVAL = 5 
