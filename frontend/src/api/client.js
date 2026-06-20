@@ -34,8 +34,8 @@ const getLocalISOString = (date) => {
  * Frontend: cpu, ram, disk
  */
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
-  const from = getLocalISOString(new Date(fromDate));
-  const to = getLocalISOString(new Date(toDate));
+  const from = getLocalISOString(fromDate);
+  const to = getLocalISOString(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {
