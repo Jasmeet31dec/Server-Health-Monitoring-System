@@ -165,7 +165,7 @@ export const ServerDetailPage = () => {
                     <div>
                         <div className="text-xs text-slate-500 uppercase font-bold mb-1">Last Data</div>
                         <div className="font-semibold text-indigo-600">
-                            {metrics.length > 0 ? formatTime(metrics[metrics.length - 1].timestamp) : '---'}
+                            {metrics.length > 0 ? formatTime(new Date(metrics[metrics.length - 1].timestamp)) : '---'}
                         </div>
                     </div>
                     <div>
