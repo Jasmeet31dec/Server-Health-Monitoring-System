@@ -21,12 +21,11 @@ export const fetchServers = async () => {
 };
 
 // Helper to get ISO string without the UTC shift
-const getLocalISOString = (date) => {
-  const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
-  const localISOTime = new Date(date - offset).toISOString().slice(0, -1);
-  // .slice(0, -1) removes the "Z"
-  return localISOTime;
-};
+function toUTC(date) {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, -1); // remove Z if backend expects no Z
+}
 
 /**
  * Fetches historical metrics and maps them to frontend keys
@@ -35,8 +34,8 @@ const getLocalISOString = (date) => {
  */
 
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
-  const from = getLocalISOString(fromDate);
-  const to = getLocalISOString(toDate);
+  const from = toUTC(fromDate);
+  const to = toUTC(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {
