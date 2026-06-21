@@ -87,6 +87,7 @@ export const ServerDetailPage = () => {
     }, [viewMode, loadHistoryData]);
 
     const formatTime = (timestamp) => {
+        console.log("inside formattime : ",timestamp);
         if (!timestamp) return '---';
 
         // If Spring sends an array [2024, 5, 12, 10, 30], convert it to a Date
@@ -95,6 +96,7 @@ export const ServerDetailPage = () => {
             date = new Date(timestamp[0], timestamp[1] - 1, timestamp[2], timestamp[3], timestamp[4], timestamp[5]);
         } else {
             date = new Date(timestamp);
+            console.log("date : ",date,date.getTime());
         }
 
         return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
@@ -165,7 +167,7 @@ export const ServerDetailPage = () => {
                     <div>
                         <div className="text-xs text-slate-500 uppercase font-bold mb-1">Last Data</div>
                         <div className="font-semibold text-indigo-600">
-                            {metrics.length > 0 ? formatTime(new Date(metrics[metrics.length - 1].timestamp)) : '---'}
+                            {metrics.length > 0 ? formatTime(metrics[metrics.length - 1].timestamp) : '---'}
                         </div>
                     </div>
                     <div>
