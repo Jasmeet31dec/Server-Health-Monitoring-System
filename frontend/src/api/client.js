@@ -28,27 +28,18 @@ function getISTLocalDateTime(date) {
 
 
 function convertDateToIST(date) {
-  const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC+5:30
-  const utcTime = date.getTime();
-  const istTime = new Date(utcTime + istOffset);
-
   const pad = n => String(n).padStart(2, "0");
 
-  return (
-    istTime.getFullYear() +
-    "-" +
-    pad(istTime.getMonth() + 1) +
-    "-" +
-    pad(istTime.getDate()) +
-    "T" +
-    pad(istTime.getHours()) +
-    ":" +
-    pad(istTime.getMinutes()) +
-    ":" +
-    pad(istTime.getSeconds())
-  );
-}
+  // Get IST components directly from the passed date
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
 
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
 
 
 /**
