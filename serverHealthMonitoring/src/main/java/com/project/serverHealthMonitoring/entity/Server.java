@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;    // For @Data, @NoArgsConstructor, @AllArgsC
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,9 +33,10 @@ public class Server {
 
     private String description;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     @org.hibernate.annotations.CreationTimestamp
     private LocalDateTime createdAt;
+
 
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Metric> metrics;

@@ -10,7 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -34,9 +37,10 @@ public class MetricController {
     // 1. Push metrics (Called by Python Agent)
     @PostMapping
     public ResponseEntity<Metric> pushMetrics(@RequestBody Metric metric) {
+        metric.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         Metric savedMetric = metricRepository.save(metric);
-        log.info("[METRIC] Data received from Server ID: {} | CPU: {}% | RAM: {}%",
-                metric.getServer().getId(), metric.getCpuUsage(), metric.getRamUsage());
+        log.info("[METRIC] Data received from Server ID: {} | CPU: {}% | RAM: {}% | DISK: {}%",
+                metric.getServer().getId(), metric.getCpuUsage(), metric.getRamUsage(), metric.getDiskUsage());
         return new ResponseEntity<>(savedMetric, HttpStatus.CREATED);
     }
 
@@ -44,8 +48,8 @@ public class MetricController {
     @GetMapping
     public ResponseEntity<List<Metric>> getMetrics(
             @RequestParam Long serverId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam LocalDateTime from,
+            @RequestParam LocalDateTime to) {
 
         return ResponseEntity.ok(
                 metricRepository.findByServerIdAndTimestampBetweenOrderByTimestampAsc(serverId, from, to)
@@ -56,6 +60,7 @@ public class MetricController {
     public List<HistoricalMetric> getHistory(@PathVariable Long serverId) {
         return historicalRepository.findByServerIdAndTimestampAfterOrderByTimestampAsc(
                 serverId, LocalDateTime.now().minusHours(24)
+
         );
     }
 }

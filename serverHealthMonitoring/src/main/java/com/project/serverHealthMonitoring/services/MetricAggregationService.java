@@ -11,12 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 @Service
 public class MetricAggregationService {
 
@@ -30,16 +35,18 @@ public class MetricAggregationService {
     private static final Logger log = LoggerFactory.getLogger(MetricAggregationService.class);
 
     // 0 0 * * * *
-    @Scheduled(cron = "0 */2 * * * *") // Runs exactly at the start of every hour
+    @Scheduled(fixedRate = 120000) // Runs exactly at the start of every hour
     public void aggregateHourlyMetrics() {
         //LocalDateTime start = LocalDateTime.now().minusHours(1).withMinute(0).withSecond(0);
-        LocalDateTime start = LocalDateTime.now().withMinute(2).withSecond(0);
-        LocalDateTime end = LocalDateTime.now().withMinute(0).withSecond(0);
+        log.info("Test scheduler fired at {}", LocalDateTime.now());
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(30);
 
         List<Server> servers = serverRepository.findAll();
         for (Server server : servers) {
             // Calculate averages for this server from the raw 'Metric' table
-            List<Metric> rawMetrics = metricRepository.findByServerIdAndTimestampBetween(server.getId(), start, end);
+            List<Metric> rawMetrics = metricRepository.findByServerIdAndTimestampBetween(server.getId(), fiveMinutesAgo, now);
 
             if (!rawMetrics.isEmpty()) {
                 double avgCpu = rawMetrics.stream().mapToDouble(Metric::getCpuUsage).average().orElse(0.0);
@@ -49,7 +56,7 @@ public class MetricAggregationService {
                 hist.setServer(server);
                 hist.setAvgCpu(avgCpu);
                 hist.setAvgRam(avgRam);
-                hist.setTimestamp(start);
+                hist.setTimestamp(now);
                 historicalRepository.save(hist);
 
                 log.info("[HISTORIC-METRIC] historic metric for server {} created",server.getId());

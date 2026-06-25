@@ -3,6 +3,7 @@ package com.project.serverHealthMonitoring.repos;
 import com.project.serverHealthMonitoring.entity.HistoricalMetric;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 

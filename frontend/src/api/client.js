@@ -20,6 +20,11 @@ export const fetchServers = async () => {
   }
 };
 
+function getLocalISOString(date) {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, -1);
+}
+
 // Helper to get ISO string without the UTC shift
 function toUTCISOString(date) {
   return date.toISOString(); // always UTC with Z
@@ -32,8 +37,8 @@ function toUTCISOString(date) {
  */
 
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
-  const from = toUTCISOString(fromDate);
-  const to = toUTCISOString(toDate);
+  const from = getLocalISOString(fromDate);
+  const to = getLocalISOString(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {

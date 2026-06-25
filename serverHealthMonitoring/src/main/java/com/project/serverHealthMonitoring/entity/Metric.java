@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Max; // Validation
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,11 +34,17 @@ public class Metric {
     @Min(0) @Max(100)
     private Double diskUsage;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITHOUT TIME ZONE.")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private LocalDateTime timestamp;
 
+    public Metric(Server server, Double cpuUsage, Double ramUsage, Double diskUsage, LocalDateTime timestamp) {
+        this.server = server;
+        this.cpuUsage = cpuUsage;
+        this.ramUsage = ramUsage;
+        this.diskUsage = diskUsage;
+        this.timestamp = timestamp;
+    }
 
     public Long getId() {
         return id;

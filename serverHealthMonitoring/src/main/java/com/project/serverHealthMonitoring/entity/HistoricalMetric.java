@@ -3,6 +3,7 @@ package com.project.serverHealthMonitoring.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,6 +20,7 @@ public class HistoricalMetric {
     private Double avgRam;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private LocalDateTime timestamp;
 
     public Server getServer() {

@@ -10,6 +10,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,6 @@ public class AlertService {
         } catch (Exception e) {
             // This will now give you a much better error description in the console
             log.error("[EMAIL] Failed to send email to: {} | Error: {}", to, e.getMessage());
-            e.printStackTrace();
         }
     }
 
