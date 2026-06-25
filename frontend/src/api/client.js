@@ -20,17 +20,35 @@ export const fetchServers = async () => {
   }
 };
 
-function getISTLocalDateTime() {
-  return new Date()
+function getISTLocalDateTime(date) {
+  return date
     .toLocaleString("sv-SE", { hour12: false })
     .replace(" ", "T");
 }
 
 
-function getLocalISOString(date) {
-  const tzOffset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - tzOffset).toISOString().slice(0, -1);
+function convertDateToIST(date) {
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC+5:30
+  const utcTime = date.getTime();
+  const istTime = new Date(utcTime + istOffset);
+
+  const pad = n => String(n).padStart(2, "0");
+
+  return (
+    istTime.getFullYear() +
+    "-" +
+    pad(istTime.getMonth() + 1) +
+    "-" +
+    pad(istTime.getDate()) +
+    "T" +
+    pad(istTime.getHours()) +
+    ":" +
+    pad(istTime.getMinutes()) +
+    ":" +
+    pad(istTime.getSeconds())
+  );
 }
+
 
 
 /**
@@ -40,8 +58,8 @@ function getLocalISOString(date) {
  */
 
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
-  const from = getISTLocalDateTime(fromDate);
-  const to = getISTLocalDateTime(toDate);
+  const from = convertDateToIST(fromDate);
+  const to = convertDateToIST(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {
