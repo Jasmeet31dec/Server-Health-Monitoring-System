@@ -20,22 +20,9 @@ export const fetchServers = async () => {
   }
 };
 
-function convertDateToIST(date) {
-  const pad = n => String(n).padStart(2, "0");
-
-  // Convert to IST by offsetting UTC time by +5:30 (330 minutes)
-  const istOffset = 330 * 60 * 1000;
-  const istDate = new Date(date.getTime() + istOffset);
-
-  const year = istDate.getUTCFullYear();
-  const month = pad(istDate.getUTCMonth() + 1);
-  const day = pad(istDate.getUTCDate());
-  const hours = pad(istDate.getUTCHours());
-  const minutes = pad(istDate.getUTCMinutes());
-  const seconds = pad(istDate.getUTCSeconds());
-  const ms = String(istDate.getUTCMilliseconds()).padStart(3, "0");
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}000`;
+function convertToIST(date) {
+  const istOffset = 330 * 60 * 1000; // +5:30 in ms
+  return new Date(date.getTime() + istOffset);
 }
 
 
