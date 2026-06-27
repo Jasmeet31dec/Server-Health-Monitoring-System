@@ -20,7 +20,7 @@ export const fetchServers = async () => {
   }
 };
 
-function convertToIST(date) {
+function convertDateToIST(date) {
   const istOffset = 330 * 60 * 1000; // +5:30 in ms
   return new Date(date.getTime() + istOffset);
 }
