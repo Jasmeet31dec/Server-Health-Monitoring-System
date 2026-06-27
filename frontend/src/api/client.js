@@ -46,11 +46,16 @@ function convertDateToIST(date) {
  * Fetches historical metrics and maps them to frontend keys
  * Backend: cpuUsage, ramUsage, diskUsage
  * Frontend: cpu, ram, disk
+ * LocalDateTime fromIST = LocalDateTime.ofInstant(fromInstant, ZoneId.of("Asia/Kolkata"));
+LocalDateTime toIST   = LocalDateTime.ofInstant(toInstant, ZoneId.of("Asia/Kolkata"));
+
  */
 
+
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
-  const from = convertDateToIST(fromDate);
-  const to = convertDateToIST(toDate);
+  
+  const from = LocalDateTime.ofInstant(fromDate, ZoneId.of("Asia/Kolkata"));
+  const to = LocalDateTime.ofInstant(toDate, ZoneId.of("Asia/Kolkata"));
 
   try {
     const { data } = await API.get(`/metrics`, {
@@ -68,6 +73,7 @@ export const fetchMetrics = async (serverId, fromDate, toDate) => {
       disk: m.diskUsage,
       rawTimestamp: m.timestamp,
     }));
+    console.log(data);
   } catch (error) {
     console.error("Error fetching metrics:", error);
     return [];
