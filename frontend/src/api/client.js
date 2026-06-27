@@ -20,10 +20,18 @@ export const fetchServers = async () => {
   }
 };
 
-function convertDateToIST(date) {
-  const istOffset = 330 * 60 * 1000; // +5:30 in ms
-  return new Date(date.getTime() + istOffset);
+function getLocalISOString(date) {
+  // Get timezone offset in minutes, convert to ms
+  const tzOffset = date.getTimezoneOffset() * 60000;
+
+  // Shift the date by offset, then format
+  const localISO = new Date(date.getTime() - tzOffset)
+    .toISOString()
+    .slice(0, -1); // remove trailing 'Z'
+
+  return localISO;
 }
+
 
 
 /*function convertDateToIST(date) {
@@ -53,8 +61,8 @@ LocalDateTime toIST   = LocalDateTime.ofInstant(toInstant, ZoneId.of("Asia/Kolka
 
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
   
-  const from = convertDateToIST(fromDate);
-  const to = convertDateToIST(toDate);
+  const from = getLocalISOString(fromDate);
+  const to = getLocalISOString(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {
