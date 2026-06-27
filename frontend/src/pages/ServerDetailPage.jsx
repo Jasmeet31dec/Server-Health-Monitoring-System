@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fetchMetrics, fetchAlerts, fetchServerById, fetchLogs, fetchServerHistory, handleDelete} from '../api/client';
+import { fetchMetrics, fetchAlerts, fetchServerById, fetchLogs, fetchServerHistory, handleDelete } from '../api/client';
 import { MetricChart } from '../components/charts/MetricChart';
 import { ChevronLeft, Clock, LayoutDashboard, Trash2, Activity, TrendingUp } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
@@ -86,7 +86,7 @@ export const ServerDetailPage = () => {
         }
     }, [viewMode, loadHistoryData]);
 
-    const formatTime = (timestamp) => {
+    /*const formatTime = (timestamp) => {
         console.log("inside formattime : ",timestamp);
         if (!timestamp) return '---';
 
@@ -100,7 +100,44 @@ export const ServerDetailPage = () => {
         }
 
         return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
+    };*/
+
+    const formatTime = (timestamp) => {
+        if (!timestamp) return '---';
+
+        let date;
+
+        if (Array.isArray(timestamp)) {
+            // Spring Boot LocalDateTime array format
+            date = new Date(
+                timestamp[0], timestamp[1] - 1, timestamp[2],
+                timestamp[3], timestamp[4], timestamp[5]
+            );
+        } else if (timestamp instanceof Date) {
+            // Already a Date object
+            date = timestamp;
+        } else if (typeof timestamp === 'string') {
+            // String case (ISO from backend)
+            date = new Date(timestamp);
+        } else {
+            return '---';
+        }
+
+        if (isNaN(date.getTime())) return '---';
+
+        // Force conversion to IST
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            hour12: false,
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     };
+
 
 
 
