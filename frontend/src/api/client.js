@@ -20,14 +20,26 @@ export const fetchServers = async () => {
   }
 };
 
-function getISTLocalDateTime(date) {
-  return date
-    .toLocaleString("sv-SE", { hour12: false })
-    .replace(" ", "T");
+function convertDateToIST(date) {
+  const pad = n => String(n).padStart(2, "0");
+
+  // Convert to IST by offsetting UTC time by +5:30 (330 minutes)
+  const istOffset = 330 * 60 * 1000;
+  const istDate = new Date(date.getTime() + istOffset);
+
+  const year = istDate.getUTCFullYear();
+  const month = pad(istDate.getUTCMonth() + 1);
+  const day = pad(istDate.getUTCDate());
+  const hours = pad(istDate.getUTCHours());
+  const minutes = pad(istDate.getUTCMinutes());
+  const seconds = pad(istDate.getUTCSeconds());
+  const ms = String(istDate.getUTCMilliseconds()).padStart(3, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}000`;
 }
 
 
-function convertDateToIST(date) {
+/*function convertDateToIST(date) {
   const pad = n => String(n).padStart(2, "0");
 
   // Get IST components directly from the passed date
@@ -39,7 +51,7 @@ function convertDateToIST(date) {
   const seconds = pad(date.getSeconds());
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
+}*/
 
 
 /**
@@ -54,8 +66,8 @@ LocalDateTime toIST   = LocalDateTime.ofInstant(toInstant, ZoneId.of("Asia/Kolka
 
 export const fetchMetrics = async (serverId, fromDate, toDate) => {
   
-  const from = LocalDateTime.ofInstant(fromDate, ZoneId.of("Asia/Kolkata"));
-  const to = LocalDateTime.ofInstant(toDate, ZoneId.of("Asia/Kolkata"));
+  const from = convertDateToIST(fromDate);
+  const to = convertDateToIST(toDate);
 
   try {
     const { data } = await API.get(`/metrics`, {
