@@ -3,8 +3,8 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN mvn -q -e -DskipTests packagedocker build -t myapp .
-                                 docker run -p 8080:8080 myapp
+RUN mvn -q -e -DskipTests package
+
 
 
 # Stage 2: Run the JAR
