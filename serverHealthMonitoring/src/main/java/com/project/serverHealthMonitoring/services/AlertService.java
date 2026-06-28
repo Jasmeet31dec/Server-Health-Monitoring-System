@@ -58,8 +58,8 @@ public class AlertService {
             // 2. Update Server Status
             server.setStatus("HIGH_LOAD");
 
-            log.warn("[ALERT] High load detected on server: {} | CPU: {}% | RAM: {}%",
-                    server.getName(), latestMetric.getCpuUsage(), latestMetric.getRamUsage());
+            log.warn("[ALERT] High load detected on server: {} | CPU: {}% | RAM: {}% | DISK: {}%",
+                    server.getName(), latestMetric.getCpuUsage(), latestMetric.getRamUsage(),latestMetric.getDiskUsage());
 
 
             // 3. Send Email Notification

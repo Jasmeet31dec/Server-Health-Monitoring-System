@@ -102,7 +102,7 @@ export const ServerDetailPage = () => {
         return isNaN(date.getTime()) ? '---' : date.toLocaleTimeString([], { hour12: false });
     };*/
 
-    const formatTime = (timestamp) => {
+    /*const formatTime = (timestamp) => {
         if (!timestamp) return '---';
 
         let date;
@@ -136,7 +136,36 @@ export const ServerDetailPage = () => {
             minute: '2-digit',
             second: '2-digit'
         });
+    };*/
+
+    const formatTime = (timestamp) => {
+        if (!timestamp) return '---';
+
+        let date;
+
+        if (Array.isArray(timestamp)) {
+            date = new Date(
+                timestamp[0], timestamp[1] - 1, timestamp[2],
+                timestamp[3], timestamp[4], timestamp[5]
+            );
+        } else {
+            date = new Date(timestamp);
+        }
+
+        if (isNaN(date.getTime())) return '---';
+
+        return date.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            hour12: false,
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     };
+
 
 
     if (loading) return <div className="p-10 text-center animate-pulse">Synchronizing with node...</div>;

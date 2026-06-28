@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -40,13 +41,16 @@ public class MetricAggregationService {
         //LocalDateTime start = LocalDateTime.now().minusHours(1).withMinute(0).withSecond(0);
         log.info("Test scheduler fired at {}", LocalDateTime.now());
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(30);
+        ZoneId ist = ZoneId.of("Asia/Kolkata");
+
+        LocalDateTime now = LocalDateTime.now(ist);
+        LocalDateTime thirtyMinutesAgo = now.minusMinutes(30);
+
 
         List<Server> servers = serverRepository.findAll();
         for (Server server : servers) {
             // Calculate averages for this server from the raw 'Metric' table
-            List<Metric> rawMetrics = metricRepository.findByServerIdAndTimestampBetween(server.getId(), fiveMinutesAgo, now);
+            List<Metric> rawMetrics = metricRepository.findByServerIdAndTimestampBetween(server.getId(), thirtyMinutesAgo, now);
 
             if (!rawMetrics.isEmpty()) {
                 double avgCpu = rawMetrics.stream().mapToDouble(Metric::getCpuUsage).average().orElse(0.0);
