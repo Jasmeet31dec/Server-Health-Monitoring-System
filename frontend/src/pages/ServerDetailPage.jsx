@@ -27,16 +27,19 @@ export const ServerDetailPage = () => {
         const now = new Date();
         const thirtyMinsAgo = new Date(now.getTime() - 30 * 60000);
         try {
-            const [serverData, metricData, alertData, logData] = await Promise.all([
+            const [serverData, metricData, alertData, historyData, logData] = await Promise.all([
                 fetchServerById(id),
                 fetchMetrics(id, thirtyMinsAgo, now),
                 fetchAlerts(id),
+                fetchServerHistory(id),
                 fetchLogs(id)
+                
             ]);
 
             setServer(serverData);
             setMetrics(metricData);
             setAlerts(alertData);
+            setHistory(historyData);
             setLogs(prevLogs => {
                 const existingIds = new Set(prevLogs.map(log => log.id));
                 const newUniqueLogs = logData.filter(log => !existingIds.has(log.id));

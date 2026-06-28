@@ -62,10 +62,10 @@ public class MetricAggregationService {
                 hist.setAvgRam(avgRam);
                 hist.setTimestamp(now);
 
-                log.warn("Saving historic metric...");
+                log.info("Saving historic metric...");
                 try {
                     historicalRepository.save(hist);
-                    log.warn("Historic metric saved!");
+                    log.info("Historic metric saved!");
                 } catch (Exception e) {
                     log.error("Historic save failed:", e);
                 }
