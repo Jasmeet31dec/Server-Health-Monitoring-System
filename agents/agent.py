@@ -11,7 +11,7 @@ parser.add_argument("--server-id", type=int, required=True, help="ID of the serv
 parser.add_argument("--log-path", type=str, default="app.log", help="Path to the log file to monitor")
 args = parser.parse_args()
 
-# Configuration  "http://localhost:8081/api"
+# Configuratio  "http://localhost:8081/api"
 BASE_URL = "https://server-health-monitoring-system.onrender.com/api"
 SERVER_ID = args.server_id
 LOG_FILE_PATH = args.log_path

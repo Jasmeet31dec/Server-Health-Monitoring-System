@@ -139,8 +139,6 @@ export const ServerDetailPage = () => {
     };
 
 
-
-
     if (loading) return <div className="p-10 text-center animate-pulse">Synchronizing with node...</div>;
     if (!server) return <div className="p-10 text-center text-rose-500">Node not found</div>;
 
@@ -191,7 +189,7 @@ export const ServerDetailPage = () => {
                 </div>
             )}
 
-            {/* System Info Card */}
+            {/* System Info Card formatTime(metrics[metrics.length - 1].timestamp)*/}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-6 font-bold text-lg">
                     <LayoutDashboard size={20} className="text-indigo-600" /> System Metrics Summary
@@ -204,7 +202,7 @@ export const ServerDetailPage = () => {
                     <div>
                         <div className="text-xs text-slate-500 uppercase font-bold mb-1">Last Data</div>
                         <div className="font-semibold text-indigo-600">
-                            {metrics.length > 0 ? formatTime(metrics[metrics.length - 1].timestamp) : '---'}
+                            {metrics.length > 0 ? formatTime(metrics[metrics.length - 1].rawTimestamp) : '----'}
                         </div>
                     </div>
                     <div>
@@ -230,7 +228,17 @@ export const ServerDetailPage = () => {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {alerts.map(alert => (
                                     <tr key={alert.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-4 py-4 text-slate-400 font-mono whitespace-nowrap">{new Date(alert.timestamp).toLocaleTimeString()}</td>
+                                        <td className="px-4 py-4 text-slate-400 font-mono whitespace-nowrap">{
+                                            new Date(alert.timestamp).toLocaleString('en-IN', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit',
+                                                hour12: true
+                                            })
+                                        }</td>
                                         <td className="px-4 py-4 font-medium text-slate-700 dark:text-slate-300">{alert.message}</td>
                                     </tr>
                                 ))}

@@ -35,7 +35,7 @@ public class MetricAggregationService {
     private static final Logger log = LoggerFactory.getLogger(MetricAggregationService.class);
 
     // 0 0 * * * *
-    @Scheduled(fixedRate = 120000) // Runs exactly at the start of every hour
+    @Scheduled(initialDelay = 30000, fixedRate = 120000) // Runs exactly at the start of every hour
     public void aggregateHourlyMetrics() {
         //LocalDateTime start = LocalDateTime.now().minusHours(1).withMinute(0).withSecond(0);
         log.info("Test scheduler fired at {}", LocalDateTime.now());
@@ -57,10 +57,14 @@ public class MetricAggregationService {
                 hist.setAvgCpu(avgCpu);
                 hist.setAvgRam(avgRam);
                 hist.setTimestamp(now);
-                historicalRepository.save(hist);
 
-                log.info("[HISTORIC-METRIC] historic metric for server {} created",server.getId());
+                log.warn("Saving historic metric...");
+                try {
+                    historicalRepository.save(hist);
+                    log.warn("Historic metric saved!");
+                } catch (Exception e) {
+                    log.error("Historic save failed:", e);
+                }
             }
         }
-    }
-}
+    }}
